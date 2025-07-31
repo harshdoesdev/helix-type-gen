@@ -24,7 +24,6 @@ jobs:
           export ZIP_FILE_NAME="helix-ts-gen-${{ github.event.release.tag_name }}-aarch64-apple-darwin.zip"
           mkdir -p release_package
           cp target/aarch64-apple-darwin/release/helix-ts-gen release_package/
-          cp scripts/install.sh release_package/
           cd release_package
           zip -r $ZIP_FILE_NAME *
           gh release upload ${{ github.event.release.tag_name }} $ZIP_FILE_NAME
