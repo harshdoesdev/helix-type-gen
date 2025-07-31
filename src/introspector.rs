@@ -18,7 +18,7 @@ impl HelixDBSchemaIntrospector {
         let url = format!("{}/introspect", self.connection.url);
         let request = self.client.get(&url);
 
-        println!("Fetching schema from: {}", url);
+        println!("Fetching schema from: {url}");
         let response = request.send().await?;
 
         if !response.status().is_success() {
@@ -26,13 +26,13 @@ impl HelixDBSchemaIntrospector {
         }
 
         let response_text = response.text().await?;
-        println!("Raw response: {}", response_text);
+        println!("Raw response: {response_text}");
 
         let introspection: IntrospectionResponse =
             serde_json::from_str(&response_text).map_err(|e| {
                 Error::IO(std::io::Error::new(
                     std::io::ErrorKind::InvalidData,
-                    format!("Failed to parse introspection response: {}", e),
+                    format!("Failed to parse introspection response: {e}"),
                 ))
             })?;
 
@@ -97,14 +97,14 @@ impl HelixDBSchemaIntrospector {
         let mut result = HashMap::new();
 
         for (prop_name, type_str) in properties {
-            let field_type = self.parse_field_type(type_str)?;
-            result.insert(to_snake_case(&prop_name), field_type);
+            let field_type = Self::parse_field_type(type_str)?;
+            result.insert(to_snake_case(prop_name), field_type);
         }
 
         Ok(result)
     }
 
-    fn parse_field_type(&self, type_str: &str) -> Result<FieldType> {
+    fn parse_field_type(type_str: &str) -> Result<FieldType> {
         match type_str {
             "String" => Ok(FieldType::String),
             "I8" => Ok(FieldType::Integer),
@@ -122,7 +122,7 @@ impl HelixDBSchemaIntrospector {
             "ID" => Ok(FieldType::Custom("bigint".to_string())),
             s if s.starts_with("Array(") && s.ends_with(")") => {
                 let inner_type = &s[6..s.len() - 1];
-                let inner = self.parse_field_type(inner_type)?;
+                let inner = Self::parse_field_type(inner_type)?;
                 Ok(FieldType::Array(Box::new(inner)))
             }
             s if s.starts_with("Vector<") && s.ends_with(">") => {
@@ -130,7 +130,7 @@ impl HelixDBSchemaIntrospector {
                 let dim = dim_str.parse::<usize>().map_err(|e| {
                     Error::IO(std::io::Error::new(
                         std::io::ErrorKind::InvalidData,
-                        format!("Invalid vector dimension '{}': {}", dim_str, e),
+                        format!("Invalid vector dimension '{dim_str}': {e}"),
                     ))
                 })?;
                 Ok(FieldType::Vector(dim))

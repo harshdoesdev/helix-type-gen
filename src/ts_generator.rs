@@ -74,11 +74,11 @@ export interface BaseEdge {
         output.push_str("// Node types\n");
 
         for (name, node) in &self.schema.nodes {
-            output.push_str(&format!("export interface {} extends BaseNode {{\n", name));
+            output.push_str(&format!("export interface {name} extends BaseNode {{\n"));
 
             for (prop_name, field_type) in &node.properties {
-                let ts_type = self.field_type_to_typescript(field_type);
-                output.push_str(&format!("  {}: {};\n", prop_name, ts_type));
+                let ts_type = Self::field_type_to_typescript(field_type);
+                output.push_str(&format!("  {prop_name}: {ts_type};\n"));
             }
 
             output.push_str("}\n\n");
@@ -101,13 +101,12 @@ export interface BaseEdge {
 
         for (name, vector) in &self.schema.vectors {
             output.push_str(&format!(
-                "export interface {} extends BaseVector {{\n",
-                name
+                "export interface {name} extends BaseVector {{\n"
             ));
 
             for (prop_name, field_type) in &vector.properties {
-                let ts_type = self.field_type_to_typescript(field_type);
-                output.push_str(&format!("  {}: {};\n", prop_name, ts_type));
+                let ts_type = Self::field_type_to_typescript(field_type);
+                output.push_str(&format!("  {prop_name}: {ts_type};\n"));
             }
 
             output.push_str("}\n\n");
@@ -129,13 +128,13 @@ export interface BaseEdge {
         output.push_str("// Edge types\n");
 
         for (name, edge) in &self.schema.edges {
-            output.push_str(&format!("export interface {} extends BaseEdge {{\n", name));
+            output.push_str(&format!("export interface {name} extends BaseEdge {{\n"));
             output.push_str(&format!("  from: {};\n", edge.from_node));
             output.push_str(&format!("  to: {};\n", edge.to_node));
 
             for (prop_name, field_type) in &edge.properties {
-                let ts_type = self.field_type_to_typescript(field_type);
-                output.push_str(&format!("  {}: {};\n", prop_name, ts_type));
+                let ts_type = Self::field_type_to_typescript(field_type);
+                output.push_str(&format!("  {prop_name}: {ts_type};\n"));
             }
 
             output.push_str("}\n\n");
@@ -160,11 +159,11 @@ export interface BaseEdge {
         if !self.schema.queries.is_empty() {
             for (name, query) in &self.schema.queries {
                 let param_type_name = format!("{}Params", to_pascal_case(name));
-                output.push_str(&format!("export interface {} {{\n", param_type_name));
+                output.push_str(&format!("export interface {param_type_name} {{\n"));
 
                 for (param_name, field_type) in &query.parameters {
-                    let ts_type = self.field_type_to_typescript(field_type);
-                    output.push_str(&format!("  {}: {};\n", param_name, ts_type));
+                    let ts_type = Self::field_type_to_typescript(field_type);
+                    output.push_str(&format!("  {param_name}: {ts_type};\n"));
                 }
 
                 output.push_str("}\n\n");
@@ -185,13 +184,12 @@ export interface BaseEdge {
                 let param_type = format!("{}Params", to_pascal_case(name));
 
                 if let Some(ref description) = query.description {
-                    output.push_str(&format!("  /**\n   * {}\n   */\n", description));
+                    output.push_str(&format!("  /**\n   * {description}\n   */\n"));
                 }
 
                 // Use the actual HelixDBResponse type since we can't infer return types
                 output.push_str(&format!(
-                    "  {}(params: {}): Promise<HelixDBResponse>;\n",
-                    name, param_type
+                    "  {name}(params: {param_type}): Promise<HelixDBResponse>;\n"
                 ));
             }
 
@@ -225,10 +223,9 @@ export interface BaseEdge {
 
         if !self.schema.queries.is_empty() {
             for name in self.schema.queries.keys() {
-                output.push_str(&format!("    async {}(params) {{\n", name));
+                output.push_str(&format!("    async {name}(params) {{\n"));
                 output.push_str(&format!(
-                    "      return await client.query('{}', params);\n",
-                    name
+                    "      return await client.query('{name}', params);\n"
                 ));
                 output.push_str("    },\n");
             }
@@ -256,10 +253,9 @@ export interface BaseEdge {
         }
 
         output.push_str("// Type guards and validation helpers\n");
-        for (name, _node) in &self.schema.nodes {
+        for name in self.schema.nodes.keys() {
             output.push_str(&format!(
-                "export function is{}(obj: any): obj is {} {{\n",
-                name, name
+                "export function is{name}(obj: any): obj is {name} {{\n"
             ));
             output.push_str(
                 "  return obj && typeof obj === 'object' && typeof obj.id === 'bigint';\n",
@@ -267,10 +263,9 @@ export interface BaseEdge {
             output.push_str("}\n\n");
         }
 
-        for (name, _vector) in &self.schema.vectors {
+        for name in self.schema.vectors.keys() {
             output.push_str(&format!(
-                "export function is{}(obj: any): obj is {} {{\n",
-                name, name
+                "export function is{name}(obj: any): obj is {name} {{\n"
             ));
             output.push_str(
                 "  return obj && typeof obj === 'object' && typeof obj.id === 'bigint';\n",
@@ -296,19 +291,19 @@ export interface BaseEdge {
         output
     }
 
-    fn field_type_to_typescript(&self, field_type: &FieldType) -> String {
+    fn field_type_to_typescript(field_type: &FieldType) -> String {
         match field_type {
             FieldType::String => "string".to_string(),
             FieldType::Integer => "number".to_string(),
             FieldType::Float => "number".to_string(),
             FieldType::Boolean => "boolean".to_string(),
             FieldType::ID => "HelixID".to_string(),
-            FieldType::Vector(dim) => format!("number[{}]", dim),
+            FieldType::Vector(dim) => format!("number[{dim}]"),
             FieldType::Array(inner) => {
-                format!("{}[]", self.field_type_to_typescript(inner))
+                format!("{}[]", Self::field_type_to_typescript(inner))
             }
             FieldType::Optional(inner) => {
-                format!("Optional<{}>", self.field_type_to_typescript(inner))
+                format!("Optional<{}>", Self::field_type_to_typescript(inner))
             }
             FieldType::Custom(name) => name.clone(),
         }
