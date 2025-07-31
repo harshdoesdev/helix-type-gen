@@ -1,6 +1,7 @@
 {
   "name": "examples",
   "private": true,
+  "main": "index.js",
   "devDependencies": {
     "@types/bun": "latest"
   },

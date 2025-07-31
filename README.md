@@ -40,11 +40,10 @@ helix-ts-gen --endpoint http://localhost:6969 --output-file helix-client.ts
 You can then import the generated client in your TypeScript code:
 
 ```typescript
-import { TypedHelixDBClient, createTypedClient } from './helix-client';
+import HelixDBClient from 'helix-ts';
+import { createTypedClient } from './helix-client';
 
-const client: TypedHelixDBClient = createTypedClient({
-    url: 'http://localhost:6969',
-});
+const client = createTypedClient(new HelixDBClient("http://localhost:6969"));
 
 // Now you can use the typed client to interact with your HelixDB instance
 ```

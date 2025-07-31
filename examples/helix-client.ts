@@ -7,7 +7,7 @@ import HelixDB from 'helix-ts';
 // Utility types
 export type Vector = number[];
 export type Optional<T> = T | null | undefined;
-export type HelixID = bigint;
+export type HelixID = number;
 
 export interface BaseNode {
   id: HelixID;
@@ -31,11 +31,11 @@ export type HelixDBInput = Parameters<HelixDB['query']>[1];
 
 // Node types
 export interface User extends BaseNode {
-  id: bigint;
-  is_admin: boolean;
-  name: string;
+  id: number;
   label: string;
   age: number;
+  name: string;
+  is_admin: boolean;
 }
 
 export type AnyNode = User;
@@ -45,7 +45,7 @@ export type AnyNode = User;
 export interface Knows extends BaseEdge {
   from: User;
   to: User;
-  since: bigint;
+  since: number;
 }
 
 export type AnyEdge = Knows;
@@ -54,7 +54,7 @@ export type AnyEdge = Knows;
 // Note: Return types are not generated as they cannot be inferred from schema introspection
 
 export interface GetUserFriendsParams {
-  user_id: bigint;
+  user_id: number;
 }
 
 // Client interface for type-safe HelixDB operations
@@ -84,7 +84,7 @@ export const QueryEndpoints = {
 
 // Type guards and validation helpers
 export function isUser(obj: any): obj is User {
-  return obj && typeof obj === 'object' && typeof obj.id === 'bigint';
+  return obj && typeof obj === 'object' && typeof obj.id === 'number';
 }
 
 /**

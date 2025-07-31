@@ -48,7 +48,7 @@ export type HelixDBInput = Parameters<HelixDB['query']>[1];
         r#"// Utility types
 export type Vector = number[];
 export type Optional<T> = T | null | undefined;
-export type HelixID = bigint;
+export type HelixID = number;
 
 export interface BaseNode {
   id: HelixID;
@@ -258,7 +258,7 @@ export interface BaseEdge {
                 "export function is{name}(obj: any): obj is {name} {{\n"
             ));
             output.push_str(
-                "  return obj && typeof obj === 'object' && typeof obj.id === 'bigint';\n",
+                "  return obj && typeof obj === 'object' && typeof obj.id === 'number';\n",
             );
             output.push_str("}\n\n");
         }
